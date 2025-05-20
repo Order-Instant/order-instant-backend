@@ -28,8 +28,16 @@ let signup = async (req, res) => {
     // Save new OTP
     await OTP.create({ email, otp, type: 'email-verification' });
 
-    // Send OTP email
-    await sendMail({ email, type: 1, payload: { otp } });
+    // Send OTP email including firstName and lastName
+    await sendMail({ 
+      email, 
+      type: 1, // email verification type
+      payload: { 
+        otp, 
+        firstName, 
+        lastName 
+      } 
+    });
 
     res.status(200).json({ message: 'OTP sent to email for verification' });
   } catch (err) {
@@ -128,27 +136,77 @@ let deleteAccount = async (req, res) => {
 
 let changePassword = async (req, res) => {
   try {
-    const userId = req.userId;
-    const { oldPassword, newPassword } = req.body;
+    const { email, newPassword, otp } = req.body;
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-
-    if (!oldPassword || !newPassword) {
-      return res.status(400).json({ error: 'Old and new password required' });
+    if (!email || !newPassword || !otp) {
+      return res.status(400).json({ error: 'Email, new password, and OTP are required' });
     }
 
-    const user = await User.findById(userId);
+    // Find the OTP record for this email and forgot-password type
+    const existingOtp = await OTP.findOne({ email, type: 'forgot-password' });
+
+    if (!existingOtp) {
+      return res.status(400).json({ error: 'OTP not found or expired' });
+    }
+
+    if (existingOtp.otp !== otp) {
+      return res.status(401).json({ error: 'Invalid OTP' });
+    }
+
+    // Find the user by email
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Old password incorrect' });
-    }
-
+    // Hash the new password and update the user
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
+    // Remove the used OTP
+    await OTP.deleteOne({ _id: existingOtp._id });
+
     res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({ error: 'Email and new password are required' });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Delete any previous forgot-password OTPs for this email
+    await OTP.deleteMany({ email, type: 'forgot-password' });
+
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Save OTP with type 'forgot-password'
+    await OTP.create({ email, otp, type: 'forgot-password' });
+
+    // Send OTP email with firstName, lastName included in payload
+    await sendMail({ 
+      email, 
+      type: 2, // forgot-password email template
+      payload: { 
+        otp, 
+        firstName: user.firstName, 
+        lastName: user.lastName 
+      } 
+    });
+
+    res.status(200).json({ message: 'OTP sent to email for password reset verification' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -190,4 +248,4 @@ let updateInfo = async (req, res) => {
   }
 };
 
-export { signup, createUser, login, deleteAccount, changePassword, updateInfo };
+export { signup, createUser, login, forgotPassword, deleteAccount, changePassword, updateInfo };

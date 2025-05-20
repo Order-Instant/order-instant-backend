@@ -15,10 +15,13 @@ let sendMail = async ({ email, type, payload }) => {
 
     switch (type) {
         case 1:
-            subject = "Account Registration";
+            subject = "Email Verification";
             html = html1(payload);
             break;
-        // add other cases if needed
+        case 2:
+            subject = "Forgot Password";
+            html = html2(payload);
+            break;
         default:
             subject = "Notification";
             html = "<p>No content</p>";
@@ -27,29 +30,59 @@ let sendMail = async ({ email, type, payload }) => {
     const mailOptions = {
         from: 'devrajeshthapa@gmail.com',
         to: email,
-        subject: subject,
-        html: html,  // use html property here
+        subject,
+        html,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.log('Error:', error);
+            // console.log('Error:', error);
         } else {
-            console.log('Email sent:', info.response);
+            // console.log('Email sent:', info.response);
         }
     });
 }
 
-function html1({ otp }) {
+function html1({ otp, firstName, lastName }) {
     return `
 <html>
 <body>
-    <div class="container">
-        <p>Dear user,</p>
-        <p>Use the following One-Time Password (OTP) to complete your verification. This code is valid for 3 minutes.</p>
-        <div class="otp-code">OTP code: ${otp}</div>
+    <div>
+        <strong>Dear ${firstName} ${lastName},</strong>
+        <p>Use the following One-Time Password (OTP) to complete your account registration. This code is valid for 3 minutes.</p>
+        <div><strong>OTP code:</strong> ${otp}</div>
         <p>If you did not request this code, please ignore this email.</p>
-        <div class="footer">
+        <div>
+            <strong>Sincerely,</strong>
+            <br />
+            Order Instant
+        </div>
+        <br />
+        <div style="color: #999; text-align: center;">
+            &copy; 2025 Instant Order. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+    `;
+}
+
+function html2({ otp, firstName, lastName }) {
+    return `
+<html>
+<body>
+    <div>
+        <strong>Dear ${firstName} ${lastName},</strong>
+        <p>We received a request to reset your password. Use the following One-Time Password (OTP) to proceed. This code is valid for 3 minutes.</p>
+        <div><strong>OTP code:</strong> ${otp}</div>
+        <p>If you did not request a password reset, please ignore this email or contact support immediately.</p>
+        <div>
+            <strong>Sincerely,</strong>
+            <br />
+            Order Instant
+        </div>
+        <br />
+        <div style="color: #999; text-align: center;">
             &copy; 2025 Instant Order. All rights reserved.
         </div>
     </div>
