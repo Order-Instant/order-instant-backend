@@ -1,5 +1,5 @@
 import express from 'express';
-import { signup, login, deleteAccount, changePassword, updateInfo, createUser, forgotPassword } from '../controllers/user.mjs';
+import getUserData, { signup, login, deleteAccount, changePassword, updateInfo, createUser, forgotPassword } from '../controllers/user.mjs';
 
 const router = express.Router();
 
@@ -10,5 +10,6 @@ router.post('/forgot-password', forgotPassword);
 router.delete('/delete-account/:userId', deleteAccount);
 router.put('/change-password', changePassword);
 router.put('/update-info/:userId', updateInfo);
+router.get('/user-data', getUserData)
 
 export default router;
