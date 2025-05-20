@@ -29,14 +29,14 @@ let signup = async (req, res) => {
     await OTP.create({ email, otp, type: 'email-verification' });
 
     // Send OTP email including firstName and lastName
-    await sendMail({ 
-      email, 
+    await sendMail({
+      email,
       type: 1, // email verification type
-      payload: { 
-        otp, 
-        firstName, 
-        lastName 
-      } 
+      payload: {
+        otp,
+        firstName,
+        lastName
+      }
     });
 
     res.status(200).json({ message: 'OTP sent to email for verification' });
@@ -117,22 +117,82 @@ let login = async (req, res) => {
   }
 };
 
-let deleteAccount = async (req, res) => {
+const accountDeleteRequest = async (req, res) => {
   try {
-    const userId = req.userId;
+    const { token } = req.body;
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!token) {
+      return res.status(400).json({ message: "Token is required." });
+    }
 
-    const user = await User.findByIdAndDelete(userId);
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.id;
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
 
-    res.json({ message: 'Account deleted successfully' });
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Delete existing delete-account OTPs
+    await OTP.deleteMany({ email: user.email, type: "account-delete" });
+
+    // Save new OTP
+    await OTP.create({ email: user.email, otp, type: "account-delete" });
+
+    // Send OTP mail
+    await sendMail({
+      email: user.email,
+      type: 3,
+      payload: {
+        otp,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+
+    return res.status(200).json({ message: "OTP sent to email for account deletion confirmation." });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error in accountDeleteRequest:", err);
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
+
+
+const deleteAccount = async (req, res) => {
+  try {
+    const { user_jwt: token, otp } = req.body;
+
+    if (!token || !otp) {
+      return res.status(400).json({ message: "Missing token or OTP." });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const existingOtp = await OTP.findOne({ email: user.email, type: 'account-delete' });
+
+    if (!existingOtp || existingOtp.otp !== otp) {
+      return res.status(403).json({ message: "Invalid or expired OTP." });
+    }
+
+    await User.findByIdAndDelete(userId);
+    await OTP.deleteOne({ _id: existingOtp._id });
+    return res.status(200).json({ message: "Account deleted successfully." });
+
+  } catch (err) {
+    console.error("Error deleting account:", err);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+
 
 let changePassword = async (req, res) => {
   try {
@@ -196,14 +256,14 @@ const forgotPassword = async (req, res) => {
     await OTP.create({ email, otp, type: 'forgot-password' });
 
     // Send OTP email with firstName, lastName included in payload
-    await sendMail({ 
-      email, 
+    await sendMail({
+      email,
       type: 2, // forgot-password email template
-      payload: { 
-        otp, 
-        firstName: user.firstName, 
-        lastName: user.lastName 
-      } 
+      payload: {
+        otp,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }
     });
 
     res.status(200).json({ message: 'OTP sent to email for password reset verification' });
@@ -213,18 +273,32 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-let updateInfo = async (req, res) => {
+let updateUserInfo = async (req, res) => {
   try {
-    const userId = req.userId;
-    const { firstName, lastName, email } = req.body;
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+    const token = authHeader.split(' ')[1];
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    // Verify token and decode payload
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    }
+
+    const userId = decoded.id; // Extract user ID from token payload
+
+    const { firstName, lastName, email } = req.body;
 
     if (!firstName && !lastName && !email) {
       return res.status(400).json({ error: 'At least one field must be provided to update' });
     }
 
-    // If email is updated, check if it's already taken
+    // Check if email is being updated and if it is taken
     if (email) {
       const existingUser = await User.findOne({ email });
       if (existingUser && existingUser._id.toString() !== userId) {
@@ -281,4 +355,4 @@ const getUserData = async (req, res) => {
 export default getUserData;
 
 
-export { signup, createUser, login, forgotPassword, deleteAccount, changePassword, updateInfo, getUserData};
+export { signup, createUser, login, forgotPassword, accountDeleteRequest, deleteAccount, changePassword, updateUserInfo, getUserData };

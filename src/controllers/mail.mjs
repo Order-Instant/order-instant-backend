@@ -22,6 +22,10 @@ let sendMail = async ({ email, type, payload }) => {
             subject = "Forgot Password";
             html = html2(payload);
             break;
+        case 3:
+            subject = "Account Deletion Request";
+            html = html3(payload);
+            break;
         default:
             subject = "Notification";
             html = "<p>No content</p>";
@@ -74,6 +78,30 @@ function html2({ otp, firstName, lastName }) {
     <div>
         <strong>Dear ${firstName} ${lastName},</strong>
         <p>We received a request to reset your password. Use the following One-Time Password (OTP) to proceed. This code is valid for 3 minutes.</p>
+        <div><strong>OTP code:</strong> ${otp}</div>
+        <p>If you did not request a password reset, please ignore this email or contact support immediately.</p>
+        <div>
+            <strong>Sincerely,</strong>
+            <br />
+            Order Instant
+        </div>
+        <br />
+        <div style="color: #999; text-align: center;">
+            &copy; 2025 Instant Order. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+    `;
+}
+
+function html3({ otp, firstName, lastName }) {
+    return `
+<html>
+<body>
+    <div>
+        <strong>Dear ${firstName} ${lastName},</strong>
+        <p>We received a request to delete your account. Use the OTP below to confirm. This code is valid for 3 minutes.</p>
         <div><strong>OTP code:</strong> ${otp}</div>
         <p>If you did not request a password reset, please ignore this email or contact support immediately.</p>
         <div>
