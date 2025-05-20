@@ -7,9 +7,7 @@ router.post('/signup', signup);
 router.post('/create-user', createUser);
 router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
-router.delete('/delete-account/:userId', deleteAccount);
 router.put('/change-password', changePassword);
-router.put('/update-info/:userId', updateInfo);
-router.get('/user-data', getUserData)
+router.get('/user-data', getUserData);
 
 export default router;
