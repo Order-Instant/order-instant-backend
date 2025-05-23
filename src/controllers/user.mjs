@@ -1,10 +1,13 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import User from '../models/user.mjs';
 import OTP from '../models/otp.mjs';
 import sendMail from "../controllers/mail.mjs";
 
-const JWT_SECRET = 'erwTuen454ofe4FG';
+dotenv.config();
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 let signup = async (req, res) => {
   try {
@@ -355,4 +358,4 @@ const getUserData = async (req, res) => {
 export default getUserData;
 
 
-export { signup, createUser, login, forgotPassword, accountDeleteRequest, deleteAccount, changePassword, updateUserInfo, getUserData };
+export { signup, createUser, login, forgotPassword, accountDeleteRequest, deleteAccount, changePassword, updateUserInfo };
