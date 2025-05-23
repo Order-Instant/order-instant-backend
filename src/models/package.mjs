@@ -34,9 +34,14 @@ const PackageSchema = new mongoose.Schema({
   // Payment Info
   paymentMethod: { type: String, required: true }, // e.g., Credit Card, Cash
 
-  status: { type: String, default: 'pending' },
+  estimatedDeliveryTime: { type: String, default: '' },
   lastKnownLocation: { type: String, default: '' },
-  estimatedDeliveryTime: { type: String, default: '' }
+
+  processingDateTime: { type: String, default: '' },
+  pickedUpDataTime: { type: String, default: '' },
+  departedDateTime: { type: String, default: '' },
+  deliveredDateTime: { type: String, default: '' },
+  cancelledDateTime: { type: String, default: '' },
 }, {
   timestamps: true,
 });
