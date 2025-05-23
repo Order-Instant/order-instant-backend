@@ -1,8 +1,5 @@
-import { configDotenv } from "dotenv";
 import jwt from "jsonwebtoken";
 import Package from "../models/package.mjs";
-
-configDotenv();
 
 const addPackage = async (req, res) => {
   try {
@@ -13,18 +10,22 @@ const addPackage = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Decode JWT to extract userId
+    // Decode JWT
     let userId;
     try {
       const decoded = jwt.verify(data.user_jwt, process.env.JWT_SECRET);
-      userId = decoded.userId;
+      userId = decoded.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Invalid token: userId not found' });
+      }
     } catch (err) {
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
 
-    // Create new Package document
+    // Create package with userId
     const newPackage = new Package({
-      userId, // Associate with user
+      userId,
       senderFullName: data.senderFullName,
       senderCompanyName: data.senderCompanyName,
       senderStreetAddress: data.senderStreetAddress,
@@ -57,9 +58,36 @@ const addPackage = async (req, res) => {
 
     res.status(201).json({ message: 'Package added successfully', packageId: newPackage._id });
   } catch (error) {
-    console.error('Error saving package:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(400).json({ error: 'Please provide all input field unless it is optional' });
   }
 };
 
-export { addPackage };
+const getPackages = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "Token missing" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
+
+    // Sort packages by creation time descending (newest first)
+    const packages = await Package.find({ userId }).sort({ createdAt: -1 });
+
+    res.status(200).json(packages);
+  } catch (err) {
+    res.status(401).json({ error: "Invalid or expired token" });
+  }
+};
+
+
+const deletePackage = async (req, res) => {
+  try {
+    const { packageId } = req.params;
+    await Package.findByIdAndDelete(packageId);
+    res.status(200).json({ message: "Package deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete package" });
+  }
+};
+
+export { addPackage, getPackages,  deletePackage};

@@ -1,6 +1,6 @@
 import express from 'express';
 import getUserData, { signup, login, deleteAccount, changePassword, createUser, forgotPassword, updateUserInfo, accountDeleteRequest } from '../controllers/user.mjs';
-import { addPackage } from '../controllers/package.mjs';
+import { addPackage, deletePackage, getPackages } from '../controllers/package.mjs';
 
 const router = express.Router();
 
@@ -16,6 +16,8 @@ router.post('/account-delete-request', accountDeleteRequest);
 router.delete('/account-delete', deleteAccount);
 
 // Routes for package
+router.get('/user-packages', getPackages);
 router.post('/add-package', addPackage);
+router.delete('/delete-package/:packageId', deletePackage);
 
 export default router;
