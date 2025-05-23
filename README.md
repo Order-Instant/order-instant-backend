@@ -34,9 +34,11 @@ This repository contains the main source code for the Order Instant Backend.
 - Create a `.env` file in the root directory to configure environment variables.
 - Copy the example file `.env.example` (if available) or define your own variables such as:
 ```env
-GMAIL_USER=''
-GMAIL_PASS=''
-CLIENT_IP='https://orderinstantmultipurpose.com/'
+PORT=
+MONGO_URI=''
+EMAIL_USER=''
+EMAIL_PASS=''
+JWT_SECRET=''
 ```
 - Make sure to add .env to your .gitignore to keep sensitive information secure.
 - Adjust other configuration files if needed, depending on your project setup.
