@@ -132,21 +132,58 @@ function html3({ otp, firstName, lastName }) {
 
 function html4({ senderFullName, receiverFullName, packageType, packageId }) {
   return `
-    <p>📦 <strong>New Package Submitted</strong></p>
-    <p><strong>Sender:</strong> ${senderFullName}</p>
-    <p><strong>Receiver:</strong> ${receiverFullName}</p>
-    <p><strong>Type:</strong> ${packageType}</p>
-    <p><strong>Package ID:</strong> ${packageId}</p>
+    <html>
+    <body style="font-family: Arial, sans-serif;">
+      <h2 style="color: #333;">📦 New Package Submission</h2>
+      <p>A new package has been submitted through the system. Below are the details:</p>
+      <ul style="line-height: 1.6;">
+        <li><strong>Sender:</strong> ${senderFullName}</li>
+        <li><strong>Receiver:</strong> ${receiverFullName}</li>
+        <li><strong>Package Type:</strong> ${packageType}</li>
+        <li><strong>Package ID:</strong> ${packageId}</li>
+      </ul>
+      <p style="margin-top: 20px;">Please log into the admin portal to review and process this package.</p>
+      <br/>
+      <p>— <em>Order Instant System</em></p>
+    </body>
+    </html>
   `;
 }
 
 function html5({ fullName, status, packageId }) {
-  return `
-    <p>👋 <strong>Dear ${fullName},</strong></p>
-    <p>Your package (ID: ${packageId}) has been <strong>${status}</strong>.</p>
-    <p>Thank you for using Order Instant!</p>
+  const intro = `<p>👋 <strong>Dear ${fullName},</strong></p>`;
+  const footer = `
+    <p>If you have any questions, feel free to contact our support team.</p>
+    <p>Thank you for choosing <strong>Order Instant</strong>!</p>
+    <br/>
+    <p style="color: #999; font-size: 12px;">&copy; 2025 Order Instant. All rights reserved.</p>
   `;
+
+  let message = "";
+
+  switch (status) {
+    case "processing":
+      message = `<p>Your package (ID: <strong>${packageId}</strong>) has been received and is currently being processed.</p>`;
+      break;
+    case "picked up":
+      message = `<p>Your package (ID: <strong>${packageId}</strong>) has been picked up and is now on its way.</p>`;
+      break;
+    case "departed":
+      message = `<p>Your package (ID: <strong>${packageId}</strong>) has departed from our facility and is en route to its destination.</p>`;
+      break;
+    case "delivered":
+      message = `<p>We’re pleased to inform you that your package (ID: <strong>${packageId}</strong>) has been successfully delivered.</p>`;
+      break;
+    case "cancelled":
+      message = `<p>Unfortunately, your package (ID: <strong>${packageId}</strong>) has been cancelled. Please contact support if this was unexpected.</p>`;
+      break;
+    default:
+      message = `<p>There has been an update regarding your package (ID: <strong>${packageId}</strong>). Current status: <strong>${status}</strong>.</p>`;
+  }
+
+  return `<html><body style="font-family: Arial, sans-serif;">${intro}${message}${footer}</body></html>`;
 }
+
 
 
 export default sendMail;
