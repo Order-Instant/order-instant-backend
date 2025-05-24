@@ -17,7 +17,7 @@ mongoose
 
 let app = express();
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:8080','https://orderinstantmultipurpose.com', 'https://www.orderinstantmultipurpose.com', 'https://admin.orderinstantmultipurpose.com'],
+  origin: ['http://localhost:8080', 'http://localhost:5173','https://orderinstantmultipurpose.com', 'https://www.orderinstantmultipurpose.com', 'https://admin.orderinstantmultipurpose.com'],
   credentials: true
 }))
 app.use(express.json()); // For JSON payloads
