@@ -113,4 +113,30 @@ const deletePackage = async (req, res) => {
   }
 };
 
-export { addPackage, getPackage, getPackages,  deletePackage};
+const getAllPackages = async (req, res) => {
+  try {
+    const packages = await Package.find().sort({ createdAt: -1 }); // Newest first
+    res.status(200).json(packages);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to retrieve packages" });
+  }
+};
+
+
+let updatePackage =  async (req, res) => {
+  try {
+    const { packageId } = req.params;
+    const updateFields = req.body;
+
+    const updated = await Package.findByIdAndUpdate(packageId, updateFields, { new: true });
+
+    if (!updated) return res.status(404).json({ error: 'Package not found' });
+
+    res.status(200).json({ message: 'Package updated', updated });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update package' });
+  }
+});
+
+
+export { addPackage, getPackage, getPackages,  deletePackage, updatePackage, getAllPackages};
