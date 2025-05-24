@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import Package from "../models/package.mjs";
+import sendMail from "./mail.mjs";
 
 const ADMIN_EMAIL = "orderinstant088@gmail.com";
 
