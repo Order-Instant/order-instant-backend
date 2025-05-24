@@ -19,7 +19,7 @@ router.delete('/account-delete', deleteAccount);
 router.get('/get-package/:packageId', getPackage);
 router.get('/user-packages', getPackages);
 router.post('/add-package', addPackage);
-router.post('/get-all-packages', getAllPackages);
+router.get('/get-all-packages', getAllPackages);
 router.put('/update-package/:packageId', updatePackage);
 router.delete('/delete-package/:packageId', deletePackage);
 
