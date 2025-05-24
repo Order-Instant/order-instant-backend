@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import Package from "../models/package.mjs";
 
+const ADMIN_EMAIL = "orderinstant088@gmail.com";
+
 const addPackage = async (req, res) => {
   try {
     const data = req.body;
@@ -14,15 +16,12 @@ const addPackage = async (req, res) => {
     try {
       const decoded = jwt.verify(data.user_jwt, process.env.JWT_SECRET);
       userId = decoded.id;
-      if (!userId) {
-        return res.status(401).json({ error: 'Invalid token: userId not found' });
-      }
     } catch (err) {
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
 
     const now = new Date();
-    const formattedDateTime = now.toISOString().slice(0, 16); // 'YYYY-MM-DDTHH:mm'
+    const formattedDateTime = now.toISOString().slice(0, 16);
 
     const newPackage = new Package({
       userId,
@@ -52,18 +51,28 @@ const addPackage = async (req, res) => {
       packageDescription: data.packageDescription,
 
       paymentMethod: data.paymentMethod,
-
       processingDateTime: formattedDateTime,
     });
 
     await newPackage.save();
+
+    // Send email to admin
+    await sendMail({
+      email: ADMIN_EMAIL,
+      type: 4,
+      payload: {
+        senderFullName: data.senderFullName,
+        receiverFullName: data.receiverFullName,
+        packageType: data.packageType,
+        packageId: newPackage._id
+      }
+    });
 
     res.status(201).json({ message: 'Package added successfully', packageId: newPackage._id });
   } catch (error) {
     res.status(400).json({ error: 'Please provide all input field unless it is optional' });
   }
 };
-
 
 const getPackage = async (req, res) => {
   try {
@@ -122,8 +131,36 @@ const getAllPackages = async (req, res) => {
   }
 };
 
+function getLatestStatus(packageDoc) {
+  const statusFields = {
+    Processing: packageDoc.processingDateTime,
+    PickedUp: packageDoc.pickedUpDateTime,
+    Departed: packageDoc.departedDateTime,
+    Delivered: packageDoc.deliveredDateTime,
+    Cancelled: packageDoc.cancelledDateTime,
+  };
 
-let updatePackage =  async (req, res) => {
+  let latestStatus = null;
+  let latestDate = null;
+
+  for (const [status, dateStr] of Object.entries(statusFields)) {
+    if (dateStr) {
+      const dateObj = new Date(dateStr);
+      if (!latestDate || dateObj > latestDate) {
+        latestDate = dateObj;
+        latestStatus = status;
+      }
+    }
+  }
+
+  return {
+    latestStatus,
+    localDateTime: latestDate?.toLocaleString() || null
+  };
+}
+
+
+const updatePackage = async (req, res) => {
   try {
     const { packageId } = req.params;
     const updateFields = req.body;
@@ -132,6 +169,19 @@ let updatePackage =  async (req, res) => {
 
     if (!updated) return res.status(404).json({ error: 'Package not found' });
 
+    const { latestStatus, localDateTime } = getLatestStatus(updated);
+
+    await sendMail({
+      email: updated.senderEmail,
+      type: 5,
+      payload: {
+        fullName: updated.senderFullName,
+        status: latestStatus,
+        packageId: updated._id,
+        statusTime: localDateTime
+      }
+    });
+
     res.status(200).json({ message: 'Package updated', updated });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update package' });
@@ -139,4 +189,4 @@ let updatePackage =  async (req, res) => {
 };
 
 
-export { addPackage, getPackage, getPackages,  deletePackage, updatePackage, getAllPackages};
+export { addPackage, getPackage, getPackages, deletePackage, updatePackage, getAllPackages };

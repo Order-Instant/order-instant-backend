@@ -16,7 +16,7 @@ let sendMail = async ({ email, type, payload }) => {
     let subject;
     let html;
 
-    switch (type) {
+        switch (type) {
         case 1:
             subject = "Email Verification";
             html = html1(payload);
@@ -28,6 +28,14 @@ let sendMail = async ({ email, type, payload }) => {
         case 3:
             subject = "Account Deletion Request";
             html = html3(payload);
+            break;
+        case 4:
+            subject = "New Package Submitted";
+            html = html4(payload);
+            break;
+        case 5:
+            subject = "Package Update Notification";
+            html = html5(payload);
             break;
         default:
             subject = "Notification";
@@ -121,5 +129,24 @@ function html3({ otp, firstName, lastName }) {
 </html>
     `;
 }
+
+function html4({ senderFullName, receiverFullName, packageType, packageId }) {
+  return `
+    <p>📦 <strong>New Package Submitted</strong></p>
+    <p><strong>Sender:</strong> ${senderFullName}</p>
+    <p><strong>Receiver:</strong> ${receiverFullName}</p>
+    <p><strong>Type:</strong> ${packageType}</p>
+    <p><strong>Package ID:</strong> ${packageId}</p>
+  `;
+}
+
+function html5({ fullName, status, packageId }) {
+  return `
+    <p>👋 <strong>Dear ${fullName},</strong></p>
+    <p>Your package (ID: ${packageId}) has been <strong>${status}</strong>.</p>
+    <p>Thank you for using Order Instant!</p>
+  `;
+}
+
 
 export default sendMail;
