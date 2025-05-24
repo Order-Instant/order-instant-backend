@@ -136,7 +136,7 @@ let updatePackage =  async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to update package' });
   }
-});
+};
 
 
 export { addPackage, getPackage, getPackages,  deletePackage, updatePackage, getAllPackages};
