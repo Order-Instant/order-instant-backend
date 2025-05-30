@@ -10,6 +10,7 @@ const PackageSchema = new mongoose.Schema({
   senderCity: { type: String, required: true },
   senderPostalCode: { type: String, required: true },
   senderCountry: { type: String, required: true },
+  senderDistrict: { type: String, required: false },
   senderPhone: { type: String, required: true },
   senderEmail: { type: String, required: true },
 
@@ -20,6 +21,7 @@ const PackageSchema = new mongoose.Schema({
   receiverCity: { type: String, required: true },
   receiverPostalCode: { type: String, required: true },
   receiverCountry: { type: String, required: true },
+  receiverDistrict: { type: String, required: false },
   receiverPhone: { type: String, required: true },
   receiverEmail: { type: String, required: true },
 

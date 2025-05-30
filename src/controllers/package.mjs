@@ -32,6 +32,7 @@ const addPackage = async (req, res) => {
       senderCity: data.senderCity,
       senderPostalCode: data.senderPostalCode,
       senderCountry: data.senderCountry,
+      senderDistrict: data.senderDistrict,
       senderPhone: data.senderPhone,
       senderEmail: data.senderEmail,
 
@@ -41,6 +42,7 @@ const addPackage = async (req, res) => {
       receiverCity: data.receiverCity,
       receiverPostalCode: data.receiverPostalCode,
       receiverCountry: data.receiverCountry,
+      receiverDistrict: data.receiverDistrict,
       receiverPhone: data.receiverPhone,
       receiverEmail: data.receiverEmail,
 
